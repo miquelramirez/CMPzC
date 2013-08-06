@@ -1,0 +1,34 @@
+1 7 17 20083 1 1 100 0 0 0 0
+
+#1 
+#2 X
+#3 Y
+#4 Unit ID
+#5 Orientation
+#6 
+#7 	Headcount
+#8 	Fatigue
+#9 	Nr of MP's spent
+#10	Bitfield: 
+	Bit 11: (2048)
+	Bit 10: (1024)
+	Bit 9:  (512) Isolated
+	Bit 8:  (256) Transport Mode on or off
+	Bit 7:  (128) Morale level drop (if HQ), Out of Command
+				  Low Ammo (if not an HQ), Morale drop
+	Bit 6:  (64)  Fixed on/off
+	Bit 5:  (32)  
+	Bit 4:  (16)	 
+	Bit 3:  (8)
+	Bit 2:  (4)
+	Bit 1:  (2)   Disrupted
+	Bit 0:  (1)	  
+	9216 = Digging-in
+	33792 = Low fuel, Morale Drop by one level
+	130 = Disrupted, Low Ammo
+	32768 = Low Fuel
+	128 = Low Ammo
+	32896 = Low Fuel / Low Ammo
+	32898 = Low Fuel / Low Ammo / Disrupted
+	67108864 = Stockpiled
+#11 If equal to 1, unit is patrolling
