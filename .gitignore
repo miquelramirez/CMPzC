@@ -35,4 +35,4 @@ nosetests.xml
 .pydevproject
 
 # Copyright protected files
-.oob
+*.oob
