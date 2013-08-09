@@ -12,7 +12,8 @@ morale_table = 	{
 
 class UnitTemplate :
 	
-	def __init__( self, text ) :
+	def __init__( self, nationality, text ) :
+		self.nationality = nationality
 		self.load( text )
 		
 	def load( self, text ) :
@@ -70,13 +71,19 @@ class Formation :
 			toks = lines[idx].split(" ")
 			is_unit = False
 			unit_start = 1
+			nationality_override = None
 			if "." in toks[0] :
 				is_unit = True
 			if "." in toks[1] :
+				nationality_override = toks[0]
 				is_unit = True
 				unit_start = 2
 			if is_unit: # is unit
-				u = UnitTemplate( " ".join( toks[unit_start:] ) )
+				unit_nationality = self.nationality
+				if nationality_override is not None :
+					unit_nationality = nationality_override
+				u = UnitTemplate( unit_nationality, " ".join( toks[unit_start:] ) )
+				assert u.nationality is not None
 				size_code = toks[unit_start-1].replace(".","")
 				u.size = formation_sizes[size_code]
 				self.sub_units.append( u )
@@ -84,6 +91,7 @@ class Formation :
 				idx += 1
 			else : # begin new formation
 				f = Formation()
+				f.nationality = self.nationality
 				idx = f.load( idx, lines, formations, units )
 				self.sub_formations.append( f )
 				
@@ -103,7 +111,8 @@ class Formation :
 			fields = tokens[1:]
 		if not valid :
 			raise RuntimeError, "Error parsing OOB: Could not parse formation: \nLine: %s\n%s"%(idx,lines[idx])
-		self.nationality = nation_info
+		if nation_info is not None :
+			self.nationality = nation_info
 		self.size = formation_sizes[fields[0]]
 		self.ID = int(fields[1])
 		self.name = " ".join( fields[3:] )

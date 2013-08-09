@@ -1,8 +1,9 @@
 import sys
 import os
 
-from oob 	import OrderOfBattle
-from units 	import Unit, morale_table
+from 	oob 	import OrderOfBattle
+from 	units 	import Unit, morale_table
+import 	n44
 
 class Battle :
 	
@@ -43,10 +44,11 @@ class Battle :
 		
 	def export_csv( self, filename ) :
 		with open( filename, 'w' ) as outstream :
-			header = [ 'ID', 'Name', 'Component', 'Type', 'Movement','Size', 'X', 'Y', 'Strength', 'Morale', 'Fatigue', 'MP Spent', 'Disrupted', 'Low Ammo', 'Low Fuel', 'Mounted' ]
+			header = [ 'Side', 'ID', 'Name', 'Component', 'Type', 'Movement','Size', 'X', 'Y', 'Strength', 'Morale', 'Fatigue', 'MP Spent', 'Disrupted', 'Low Ammo', 'Low Fuel', 'Mounted' ]
 			print >> outstream, ",".join( header )
 			for unit in self.units :
 				fields = []
+				fields.append( n44.get_side_name( unit.template.nationality ) )
 				fields.append( str(unit.template.ID) )
 				fields.append( unit.template.name )
 				fields.append( unit.template.type )
@@ -76,15 +78,15 @@ class Battle :
 					unit = self.units_db[ int(fields[0]) ]
 				except KeyError :
 					raise RuntimeError, "Unit with ID %d doesn't appear in %s"%(int(fields[0]),self.filename)
-				unit.X = int(fields[6])
-				unit.Y = int(fields[7])
-				unit.strength = int(fields[8])
-				unit.fatigue = int(fields[10])
-				unit.MP_spent = int(fields[11])
-				unit.disrupted = fields[12].upper() == "TRUE"
-				unit.low_ammo = fields[13].upper() == "TRUE"
-				unit.low_fuel = fields[14].upper() == "TRUE"
-				unit.mounted = fields[15].upper() == "TRUE"
+				unit.X = int(fields[7])
+				unit.Y = int(fields[8])
+				unit.strength = int(fields[9])
+				unit.fatigue = int(fields[11])
+				unit.MP_spent = int(fields[12])
+				unit.disrupted = fields[13].upper() == "TRUE"
+				unit.low_ammo = fields[14].upper() == "TRUE"
+				unit.low_fuel = fields[15].upper() == "TRUE"
+				unit.mounted = fields[16].upper() == "TRUE"
 	
 	def save( self, newfilename ) :
 		# 1. Load file contents into memory
