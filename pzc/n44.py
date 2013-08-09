@@ -5,6 +5,8 @@ Side_A_Nations = ["American", "American-AB", "British", "Canadian", "French", "P
 Side_B_Name = "Axis"
 Side_B_Nations = [ "German", "German-SS" ]
 
+Casualty_VP = 15
+
 def is_side_A( nation ) :
 	return nation in Side_A_Nations
 	
