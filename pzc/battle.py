@@ -5,12 +5,36 @@ from 	oob 	import OrderOfBattle
 from 	units 	import Unit, morale_table
 import 	n44
 
+class Casualties :
+	
+	def __init__( self ) :
+		self.losses = { 'INF':0, 'ART':0, 'AFV':0, 'ABN':0, 'NAV':0 }
+		self.vp = { 'INF':0, 'ART':0, 'AFV':0, 'ABN':0, 'NAV':0 }
+
+	def load_losses( self, line ) :
+		fields = line.split(' ')
+		self.losses['INF'] = int(fields[0])
+		self.losses['ART'] = int(fields[1])
+		self.losses['AFV'] = int(fields[2])
+		self.losses['ABN'] = int(fields[3])
+		self.losses['NAV'] = int(fields[4])
+		
+	def load_losses_vp( self, line ) :
+		fields = line.split(' ')
+		self.vp['INF'] = int(fields[0])
+		self.vp['ART'] = int(fields[1])
+		self.vp['AFV'] = int(fields[2])
+		self.vp['ABN'] = int(fields[3])
+		self.vp['NAV'] = int(fields[4])		
+		
 class Battle :
 	
 	def __init__( self, bte_file ) :
 		self.filename = bte_file
 		self.units = []
 		self.units_db = {}
+		self.side_A_casualties = Casualties()
+		self.side_B_casualties = Casualties()
 		self.oob_db = None
 		# check that the file actually exists
 		if not os.path.exists( self.filename ) :
@@ -20,18 +44,29 @@ class Battle :
 	def load_file( self ) :
 		# 1. Load file contents into memory
 		file_lines = []
+
 		with open( self.filename ) as instream :
 			for line in instream :
 				line = line.strip()
-				if len(line) == 0 : continue
 				file_lines.append( line )
 		print >> sys.stdout, len(file_lines), "lines loaded from", self.filename
 		
+		idx = 1
 		# 2. Process lines
 		for line in file_lines :
-			if ".oob" in line : # oob file reference found
-				print >> sys.stdout, "Found reference to OOB file:", line
-				self.oob_db = OrderOfBattle( line )
+			if self.oob_db is None :
+				if ".oob" in line : # oob file reference found
+					print >> sys.stdout, "Found reference to OOB file:", line
+					self.oob_db = OrderOfBattle( line )
+				if idx == 9 : # Side A losses
+					self.side_A_casualties.load_losses( line )
+				if idx == 10 : # Side A loss vp's
+					self.side_A_casualties.load_losses_vp( line )
+				if idx == 11 : # Side B losses
+					self.side_A_casualties.load_losses( line )
+				if idx == 12 : # Side B loss vp's
+					self.side_B_casualties.load_losses_vp( line )
+				idx +=1
 				continue
 			tokens = [ tok.strip() for tok in line.split( " " )]
 			if self.oob_db is not None and tokens[0] == "1" : # Unit reference found
@@ -39,6 +74,7 @@ class Battle :
 				u.load( tokens, self.oob_db )
 				self.units.append( u )
 				self.units_db[u.ID] = u
+			idx += 1
 			
 		print >> sys.stdout, len(self.units), "units loaded from", self.filename
 		
