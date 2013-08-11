@@ -1,8 +1,9 @@
 import sys
 import os
 
-from 	oob 	import OrderOfBattle
-from 	units 	import Unit, morale_table, service_loss_type_table
+from 	oob 		import OrderOfBattle
+from 	units 		import Unit, morale_table, service_loss_type_table
+from	locations	import VictoryLocation
 import 	n44
 
 class Casualties :
@@ -60,9 +61,11 @@ class Battle :
 		self.filename = bte_file
 		self.units = []
 		self.units_db = {}
+		self.units_locs = {}
 		self.side_A_casualties = Casualties()
 		self.side_B_casualties = Casualties()
 		self.oob_db = None
+		self.vp_locs = {}
 		# check that the file actually exists
 		if not os.path.exists( self.filename ) :
 			raise RuntimeError, "Could not open battle file: %s"%self.filename
@@ -101,6 +104,14 @@ class Battle :
 				u.load( tokens, self.oob_db )
 				self.units.append( u )
 				self.units_db[u.ID] = u
+				try :
+					self.units_locs[ (u.X, u.Y) ] += [ u ]
+				except KeyError :
+					self.units_locs[ (u.X, u.Y) ] = [ u ]
+			if self.oob_db is not None and tokens[0] == "6" : # Victory Location
+				loc = VictoryLocation()
+				loc.load( tokens )
+				self.vp_locs[ (loc.X, loc.Y) ] = loc
 			idx += 1
 			
 		print >> sys.stdout, len(self.units), "units loaded from", self.filename
@@ -141,8 +152,15 @@ class Battle :
 					unit = self.units_db[ int(fields[1]) ]
 				except KeyError :
 					raise RuntimeError, "Unit with ID %d doesn't appear in %s"%(int(fields[1]),self.filename)
+					
+				self.units_locs[ (unit.X, unit.Y) ].remove( unit )
 				unit.X = int(fields[7])
 				unit.Y = int(fields[8])
+				try :
+					self.units_locs[ (unit.X, unit.Y) ] += [ unit ]
+				except KeyError :
+					self.units_locs[ (unit.X, unit.Y) ] = [ unit ]
+					
 				new_str_value = int(fields[9])
 				if new_str_value < unit.strength :
 					losses = unit.strength - new_str_value
@@ -153,12 +171,29 @@ class Battle :
 					else :
 						raise RuntimeError, "Could not determine side for nationality: %s"%unit.template.nationality
 					unit.strength = int(fields[9])
+					
 				unit.fatigue = int(fields[11])
 				unit.MP_spent = int(fields[12])
 				unit.disrupted = fields[13].upper() == "TRUE"
 				unit.low_ammo = fields[14].upper() == "TRUE"
 				unit.low_fuel = fields[15].upper() == "TRUE"
 				unit.mounted = fields[16].upper() == "TRUE"
+				
+		self.update_victory_location_ownership()
+	
+	def update_victory_location_ownership( self ) :
+		for coords, loc in self.vp_locs.iteritems() :
+			units = []
+			try :
+				units = self.units_locs[ coords ]
+			except KeyError :
+				pass
+			
+			if len(units) == 0 : continue # No unit in hex, ownership doesn't change
+			
+			if loc.nationality != units[0].template.nationality :
+				print >> sys.stdout, "Ownership of", coords, "changed from", loc.nationality, "to", units[0].template.nationality
+				loc.nationality = units[0].template.nationality
 	
 	def save( self, newfilename ) :
 		# 1. Load file contents into memory
@@ -200,7 +235,6 @@ class Battle :
 					continue
 				tokens = [ tok.strip() for tok in line.split( " " )]
 				if oob_found and tokens[0] == "1" : # Unit reference found
-					
 					try :
 						unit = self.units_db[int(tokens[3])]
 					except KeyError :
@@ -209,4 +243,13 @@ class Battle :
 					print >> outstream, " ".join( tokens )
 				else :
 					print >> outstream, line
+				if oob_found and tokens[0] == "6" : # Victory location found
+					loc_coords = (int(tokens[1]), int(tokens[2]))
+					loc = None
+					try :
+						loc = self.vp_locs[loc_coords]
+					except KeyError :
+						raise RuntimeError, "Victory location at %s wasn't loaded!"%loc_coords
+					updated_line = loc.write()
+					print >> outstream, updated_line
 				idx += 1
