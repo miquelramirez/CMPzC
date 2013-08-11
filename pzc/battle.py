@@ -119,9 +119,9 @@ class Battle :
 				vloc_count += 1
 			if self.oob_db is not None and tokens[0] == "10" : # Fortified Location
 				loc = FortifiedLocation()
-				loc.load( tokens )
-				self.fort_locs[ (loc.X, loc.Y) ] = loc
-				fortloc_count += 1
+				if loc.load( tokens ) :
+					self.fort_locs[ (loc.X, loc.Y) ] = loc
+					fortloc_count += 1
 			idx += 1
 			
 		print >> sys.stdout, len(self.units), "units loaded from", self.filename
