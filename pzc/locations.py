@@ -20,3 +20,22 @@ class VictoryLocation :
 		tokens += [ str(self.value) ]
 		tokens += [ str(self.nationality) ]
 		return " ".join( tokens )
+		
+fort_types = { 	1:'Improved',
+				2:'Trench',
+				4:'Pillboxes',
+				8:'Bunker',
+				16:'Minefield' }
+
+class FortifiedLocation :
+
+	def __init__( self ) :
+		self.X = None
+		self.Y = None
+		self.type = None
+		
+	def load( self, tokens ) :
+		self.X = int( tokens[1] )
+		self.Y = int( tokens[2] )
+		self.type = fort_types[ int(tokens[3]) ]
+		

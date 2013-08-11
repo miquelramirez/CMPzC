@@ -3,7 +3,7 @@ import os
 
 from 	oob 		import OrderOfBattle
 from 	units 		import Unit, morale_table, service_loss_type_table
-from	locations	import VictoryLocation
+from	locations	import VictoryLocation, FortifiedLocation
 import 	n44
 
 class Casualties :
@@ -66,6 +66,8 @@ class Battle :
 		self.side_B_casualties = Casualties()
 		self.oob_db = None
 		self.vp_locs = {}
+		self.fort_locs = {}
+		
 		# check that the file actually exists
 		if not os.path.exists( self.filename ) :
 			raise RuntimeError, "Could not open battle file: %s"%self.filename
@@ -82,6 +84,8 @@ class Battle :
 		print >> sys.stdout, len(file_lines), "lines loaded from", self.filename
 		
 		idx = 1
+		vloc_count = 0
+		fortloc_count = 0
 		# 2. Process lines
 		for line in file_lines :
 			if self.oob_db is None :
@@ -112,9 +116,17 @@ class Battle :
 				loc = VictoryLocation()
 				loc.load( tokens )
 				self.vp_locs[ (loc.X, loc.Y) ] = loc
+				vloc_count += 1
+			if self.oob_db is not None and tokens[0] == "10" : # Fortified Location
+				loc = FortifiedLocation()
+				loc.load( tokens )
+				self.fort_locs[ (loc.X, loc.Y) ] = loc
+				fortloc_count += 1
 			idx += 1
 			
 		print >> sys.stdout, len(self.units), "units loaded from", self.filename
+		print >> sys.stdout, vloc_count, "victory locations loaded from", self.filename
+		print >> sys.stdout, fortloc_count, "fortified locations loaded from", self.filename
 		
 	def export_csv( self, filename ) :
 		with open( filename, 'w' ) as outstream :
