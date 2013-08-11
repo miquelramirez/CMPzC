@@ -2,19 +2,19 @@ import sys
 import os
 
 from 	oob 	import OrderOfBattle
-from 	units 	import Unit, morale_table
+from 	units 	import Unit, morale_table, service_loss_type_table
 import 	n44
 
 class Casualties :
 	
 	def __init__( self ) :
-		self.losses = { 'INF':0, 'ART':0, 'AFV':0, 'ABN':0, 'NAV':0 }
-		self.vp = { 'INF':0, 'ART':0, 'AFV':0, 'ABN':0, 'NAV':0 }
+		self.losses = { 'INF':0, 'GUN':0, 'AFV':0, 'ABN':0, 'NAV':0 }
+		self.vp = { 'INF':0, 'GUN':0, 'AFV':0, 'ABN':0, 'NAV':0 }
 
 	def load_losses( self, line ) :
 		fields = line.split(' ')
 		self.losses['INF'] = int(fields[0])
-		self.losses['ART'] = int(fields[1])
+		self.losses['GUN'] = int(fields[1])
 		self.losses['AFV'] = int(fields[2])
 		self.losses['ABN'] = int(fields[3])
 		self.losses['NAV'] = int(fields[4])
@@ -22,11 +22,38 @@ class Casualties :
 	def load_losses_vp( self, line ) :
 		fields = line.split(' ')
 		self.vp['INF'] = int(fields[0])
-		self.vp['ART'] = int(fields[1])
+		self.vp['GUN'] = int(fields[1])
 		self.vp['AFV'] = int(fields[2])
 		self.vp['ABN'] = int(fields[3])
 		self.vp['NAV'] = int(fields[4])		
+	
+	def update( self, service, lost_amount ) :
+		try :
+			loss_type = service_loss_type_table[service]
+		except KeyError :
+			raise RuntimeError, "Could not determine loss type for service: %s"%service
+		print >> sys.stdout, 'Updating casualties:', lost_amount, 'of type', loss_type, 'for', lost_amount * n44.Casualty_VP, 'VPs'
+		self.losses[loss_type] += lost_amount
+		self.vp[loss_type] += lost_amount * n44.Casualty_VP
 		
+	def write_losses( self, line ) :
+		tokens = [ tok.strip() for tok in line.split( " " )]
+		tokens[0] = str( self.losses['INF'] )
+		tokens[1] = str( self.losses['GUN'] )
+		tokens[2] = str( self.losses['AFV'] )
+		tokens[3] = str( self.losses['ABN'] )
+		tokens[4] = str( self.losses['NAV'] )
+		return " ".join(tokens)
+	
+	def write_loss_vps( self, line ) :
+		tokens = [ tok.strip() for tok in line.split( " " )]
+		tokens[0] = str( self.vp['INF'] )
+		tokens[1] = str( self.vp['GUN'] )
+		tokens[2] = str( self.vp['AFV'] )
+		tokens[3] = str( self.vp['ABN'] )
+		tokens[4] = str( self.vp['NAV'] )
+		return " ".join(tokens)
+	
 class Battle :
 	
 	def __init__( self, bte_file ) :
@@ -63,7 +90,7 @@ class Battle :
 				if idx == 10 : # Side A loss vp's
 					self.side_A_casualties.load_losses_vp( line )
 				if idx == 11 : # Side B losses
-					self.side_A_casualties.load_losses( line )
+					self.side_B_casualties.load_losses( line )
 				if idx == 12 : # Side B loss vp's
 					self.side_B_casualties.load_losses_vp( line )
 				idx +=1
@@ -109,14 +136,23 @@ class Battle :
 				line = line.strip()
 				if len(line) == 0 : continue
 				fields = line.split( "," )
-				if fields[0] == "ID" : continue
+				if fields[1] == "ID" : continue
 				try :
-					unit = self.units_db[ int(fields[0]) ]
+					unit = self.units_db[ int(fields[1]) ]
 				except KeyError :
-					raise RuntimeError, "Unit with ID %d doesn't appear in %s"%(int(fields[0]),self.filename)
+					raise RuntimeError, "Unit with ID %d doesn't appear in %s"%(int(fields[1]),self.filename)
 				unit.X = int(fields[7])
 				unit.Y = int(fields[8])
-				unit.strength = int(fields[9])
+				new_str_value = int(fields[9])
+				if new_str_value < unit.strength :
+					losses = unit.strength - new_str_value
+					if n44.is_side_A( unit.template.nationality ) :
+						self.side_A_casualties.update( unit.template.service, losses )
+					elif n44.is_side_B( unit.template.nationality ) :
+						self.side_B_casualties.update( unit.template.service, losses )
+					else :
+						raise RuntimeError, "Could not determine side for nationality: %s"%unit.template.nationality
+					unit.strength = int(fields[9])
 				unit.fatigue = int(fields[11])
 				unit.MP_spent = int(fields[12])
 				unit.disrupted = fields[13].upper() == "TRUE"
@@ -131,14 +167,36 @@ class Battle :
 			for line in instream :
 				line = line.strip()
 				file_lines.append( line )
-		
+
 		# 2. Process lines
 		with open( newfilename, 'w' ) as outstream :
+			idx = 1
 			oob_found = False
 			for line in file_lines :
+				if idx == 9 : # Side A casualties
+					updated_line = self.side_A_casualties.write_losses( line )
+					print >> outstream, updated_line
+					idx += 1
+					continue
+				if idx == 10 :
+					updated_line = self.side_A_casualties.write_loss_vps( line )
+					print >> outstream, updated_line
+					idx += 1
+					continue
+				if idx == 11 : # Side B casualties
+					updated_line = self.side_B_casualties.write_losses( line )
+					print >> outstream, updated_line
+					idx += 1
+					continue
+				if idx == 12 :
+					updated_line = self.side_B_casualties.write_loss_vps( line )
+					print >> outstream, updated_line
+					idx += 1
+					continue				
 				if ".oob" in line : # oob file reference found
 					oob_found = True
 					print >> outstream, line
+					idx += 1
 					continue
 				tokens = [ tok.strip() for tok in line.split( " " )]
 				if oob_found and tokens[0] == "1" : # Unit reference found
@@ -151,3 +209,4 @@ class Battle :
 					print >> outstream, " ".join( tokens )
 				else :
 					print >> outstream, line
+				idx += 1

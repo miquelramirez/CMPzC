@@ -9,7 +9,31 @@ morale_table = 	{
 					5:'B',
 					6:'A'
 				}
-
+# Loss types 'INF', 'GUN','AFV','ABN','NAV' }
+service_loss_type_table = {
+					'HQ':'INF',
+					'INF':'INF',
+					'HVY':'INF',
+					'ENG':'INF',
+					'ART':'GUN',
+					'AA':'GUN',
+					'AT':'GUN',
+					'ARM':'AFV',
+					'MOR':'GUN',
+					'REC':'AFV',
+					'HAA':'GUN',
+					'ROC':'GUN',
+					'MG':'INF',
+					'RA':'ABN',
+					'COM':'INF',
+					'BAT':'NAV',
+					'DES':'NAV',
+					'PAR':'INF',
+					'FI':'ABN',
+					'BO':'ABN',
+					'HBO':'ABN'
+				}
+				
 class UnitTemplate :
 	
 	def __init__( self, nationality, text ) :
