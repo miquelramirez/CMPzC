@@ -38,4 +38,5 @@ nosetests.xml
 *.oob
 
 # Visual C-Sharp stuff
-obj/*
+visual_studio/CMPzC/CMPzC/obj/*
+visual_studio/CMPzC/CSV_Extractor/obj/*
