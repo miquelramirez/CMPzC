@@ -47,6 +47,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="PzC\Map\Location.cs" />
+    <Compile Include="PzC\Map\VictoryLocation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Settings.settings">

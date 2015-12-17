@@ -10,6 +10,7 @@ namespace CMPzC
     {
         public class Battle
         {
+
         }
     }
 }
