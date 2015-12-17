@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSV_Extractor", "CSV_Extractor\CSV_Extractor.csproj", "{FEF0BFE3-3706-43B5-BB30-CA0D871ADA9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMPzC", "CMPzC\CMPzC.csproj", "{B80A3BE6-45F0-41CA-AD53-B374E1CF33C5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEF0BFE3-3706-43B5-BB30-CA0D871ADA9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEF0BFE3-3706-43B5-BB30-CA0D871ADA9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEF0BFE3-3706-43B5-BB30-CA0D871ADA9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEF0BFE3-3706-43B5-BB30-CA0D871ADA9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B80A3BE6-45F0-41CA-AD53-B374E1CF33C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B80A3BE6-45F0-41CA-AD53-B374E1CF33C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B80A3BE6-45F0-41CA-AD53-B374E1CF33C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B80A3BE6-45F0-41CA-AD53-B374E1CF33C5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
