@@ -36,3 +36,6 @@ nosetests.xml
 
 # Copyright protected files
 *.oob
+
+# Visual C-Sharp stuff
+obj/*
